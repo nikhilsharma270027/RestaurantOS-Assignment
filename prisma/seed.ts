@@ -220,7 +220,7 @@ async function main() {
     },
   ];
 
-  const ingredients = [];
+  const ingredients: any[] = [];
   for (const ingredientData of ingredientsData) {
     const ingredient = await prisma.ingredient.create({ data: ingredientData });
     ingredients.push(ingredient);
