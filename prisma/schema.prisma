@@ -1,8 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client"
   output   = "../app/generated/prisma"
@@ -11,6 +7,10 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ==========================================
+// ENUMS
+// ==========================================
 
 enum UserRole {
   OWNER
@@ -21,79 +21,558 @@ enum UserRole {
   STORE_MANAGER
 }
 
+enum OrderStatus {
+  pending
+  preparing
+  ready
+  served
+  cancelled
+}
+
+enum OrderType {
+  dine_in
+  takeaway
+  delivery
+}
+
+enum MovementType {
+  in
+  out
+  transfer
+  adjustment
+}
+
+enum PurchaseOrderStatus {
+  draft
+  pending
+  approved
+  received
+  cancelled
+}
+
+enum InvoiceStatus {
+  extracted
+  reviewed
+  approved
+  paid
+  cancelled
+}
+
+enum InvoiceSourceKind {
+  printed
+  digital
+  scanned
+}
+
+// ==========================================
+// AUTH & USER MODELS (Better Auth)
+// ==========================================
+
 model User {
   id            String   @id @default(cuid())
-
-  // Better Auth
   name          String
   email         String   @unique
-  emailVerified Boolean  @default(false)
+  emailVerified Boolean  @default(true)
   image         String?
-
-  // RestaurantOS
   role          UserRole @default(WAITER)
   employeeId    String?  @unique
   phone         String?
   isActive      Boolean  @default(true)
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  accounts      Account[]
-  sessions      Session[]
+  // Relations
+  accounts         Account[]
+  sessions         Session[]
+  staff            Staff?
+  orders           Order[]           @relation("OrderCreator")
+  expenses         Expense[]         @relation("ExpenseCreator")
+  purchaseOrders   PurchaseOrder[]   @relation("POCreator")
+  stockMovements   StockMovement[]   @relation("StockMovementCreator")
+  supplierInvoices SupplierInvoice[] @relation("InvoiceCreator")
+  activityLogs     ActivityLog[]
+
+  @@map("users")
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  expiresAt    DateTime
-  token        String   @unique
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  ipAddress    String?
-  userAgent    String?
-
-  userId       String
-  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  expiresAt DateTime @map("expires_at")
+  token     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@map("sessions")
 }
 
 model Account {
-  id                    String @id @default(cuid())
-
-  accountId             String
-  providerId            String
-
-  userId                String
-  user                  User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  accessToken           String?
-  refreshToken          String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-
+  id                    String    @id @default(cuid())
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                String    @map("user_id")
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
   scope                 String?
-  idToken               String?
+  idToken               String?   @map("id_token")
   password              String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  @@index([userId])
   @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("accounts")
 }
 
 model Verification {
   id         String   @id @default(cuid())
-
   identifier String
   value      String
-  expiresAt  DateTime
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@unique([identifier, value])
+  @@map("verifications")
+}
+
+// ==========================================
+// PROFILES / STAFF
+// ==========================================
+
+model Staff {
+  id         String   @id @default(cuid())
+  userId     String?  @unique @map("user_id")
+  fullName   String   @map("full_name")
+  jobRole    UserRole @default(WAITER) @map("job_role")
+  email      String?
+  phone      String?
+  hourlyRate Decimal  @default(0) @map("hourly_rate") @db.Decimal(12, 2)
+  hiredOn    DateTime @default(now()) @map("hired_on")
+  isActive   Boolean  @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("staff")
+}
+
+// ==========================================
+// RESTAURANT OPERATIONS
+// ==========================================
+
+model RestaurantTable {
+  id       String @id @default(cuid())
+  name     String
+  capacity Int    @default(2)
+  location String @default("Main Hall")
+  status   String @default("available")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  orders Order[]
+
+  @@map("restaurant_tables")
+}
+
+model Supplier {
+  id           String  @id @default(cuid())
+  name         String
+  contactName  String? @map("contact_name")
+  email        String?
+  phone        String?
+  address      String?
+  paymentTerms String? @map("payment_terms")
+  notes        String?
+  isActive     Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ingredients      Ingredient[]
+  products         Product[]
+  purchaseOrders   PurchaseOrder[]
+  expenses         Expense[]
+  supplierInvoices SupplierInvoice[]
+
+  @@map("suppliers")
+}
+
+model MenuCategory {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  sortOrder   Int     @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  items MenuItem[]
+
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id              String  @id @default(cuid())
+  name            String
+  description     String?
+  price           Decimal @default(0) @db.Decimal(12, 2)
+  cost            Decimal @default(0) @db.Decimal(12, 2)
+  prepTimeMinutes Int     @default(15) @map("prep_time_minutes")
+  isAvailable     Boolean @default(true) @map("is_available")
+  imageUrl        String? @map("image_url")
+
+  categoryId String?       @map("category_id")
+  category   MenuCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  recipes    Recipe[]
+  orderItems OrderItem[]
+
+  @@map("menu_items")
+}
+
+model Ingredient {
+  id           String  @id @default(cuid())
+  name         String
+  unit         String  @default("kg")
+  costPerUnit  Decimal @default(0) @map("cost_per_unit") @db.Decimal(12, 2)
+  currentStock Decimal @default(0) @map("current_stock") @db.Decimal(12, 3)
+  reorderLevel Decimal @default(0) @map("reorder_level") @db.Decimal(12, 3)
+  wasteQty     Decimal @default(0) @map("waste_qty") @db.Decimal(12, 3)
+
+  supplierId String?   @map("supplier_id")
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  recipeItems RecipeItem[]
+
+  @@map("ingredients")
+}
+
+model Recipe {
+  id              String  @id @default(cuid())
+  name            String
+  instructions    String?
+  yieldQty        Decimal @default(1) @map("yield_qty") @db.Decimal(12, 2)
+  prepTimeMinutes Int     @default(15) @map("prep_time_minutes")
+
+  menuItemId String?   @map("menu_item_id")
+  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  items RecipeItem[]
+
+  @@map("recipes")
+}
+
+model RecipeItem {
+  id       String  @id @default(cuid())
+  quantity Decimal @default(0) @db.Decimal(12, 3)
+
+  recipeId String @map("recipe_id")
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  ingredientId String     @map("ingredient_id")
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("recipe_items")
+}
+
+model Order {
+  id          String  @id @default(cuid())
+  orderNumber String  @unique @default("ORD-00000000") @map("order_number")
+  status      String  @default("pending")
+  orderType   String  @default("dine_in") @map("order_type")
+  subtotal    Decimal @default(0) @db.Decimal(12, 2)
+  tax         Decimal @default(0) @db.Decimal(12, 2)
+  total       Decimal @default(0) @db.Decimal(12, 2)
+  notes       String?
+
+  tableId String?          @map("table_id")
+  table   RestaurantTable? @relation(fields: [tableId], references: [id], onDelete: SetNull)
+
+  createdBy String? @map("created_by")
+  creator   User?   @relation("OrderCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  items OrderItem[]
+
+  @@index([createdAt(sort: Desc)])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  quantity  Int     @default(1)
+  unitPrice Decimal @default(0) @map("unit_price") @db.Decimal(12, 2)
+  status    String  @default("queued")
+  notes     String?
+
+  orderId String @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  menuItemId String?   @map("menu_item_id")
+  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+// ==========================================
+// INVENTORY
+// ==========================================
+
+model ProductCategory {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("product_categories")
+}
+
+model Warehouse {
+  id       String  @id @default(cuid())
+  name     String
+  location String?
+  kind     String  @default("store")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  stockMovements StockMovement[]
+  purchaseOrders PurchaseOrder[]
+
+  @@map("warehouses")
+}
+
+model Product {
+  id             String  @id @default(cuid())
+  sku            String  @unique @default("SKU-000000")
+  name           String
+  unit           String  @default("unit")
+  unitCost       Decimal @default(0) @map("unit_cost") @db.Decimal(12, 2)
+  quantityOnHand Decimal @default(0) @map("quantity_on_hand") @db.Decimal(12, 3)
+  reorderLevel   Decimal @default(0) @map("reorder_level") @db.Decimal(12, 3)
+
+  categoryId String?          @map("category_id")
+  category   ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  supplierId String?   @map("supplier_id")
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  stockMovements     StockMovement[]
+  purchaseOrderItems PurchaseOrderItem[]
+
+  @@map("products")
+}
+
+model StockMovement {
+  id           String  @id @default(cuid())
+  movementType String  @default("in") @map("movement_type")
+  quantity     Decimal @default(0) @db.Decimal(12, 3)
+  unitCost     Decimal @default(0) @map("unit_cost") @db.Decimal(12, 2)
+  reference    String?
+  note         String?
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  warehouseId String?    @map("warehouse_id")
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+
+  createdBy String? @map("created_by")
+  creator   User?   @relation("StockMovementCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([productId])
+  @@map("stock_movements")
+}
+
+model PurchaseOrder {
+  id           String    @id @default(cuid())
+  poNumber     String    @unique @default("PO-00000000") @map("po_number")
+  status       String    @default("draft")
+  orderDate    DateTime  @default(now()) @map("order_date")
+  expectedDate DateTime? @map("expected_date")
+  total        Decimal   @default(0) @db.Decimal(12, 2)
+  notes        String?
+
+  supplierId String?   @map("supplier_id")
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  warehouseId String?    @map("warehouse_id")
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+
+  createdBy String? @map("created_by")
+  creator   User?   @relation("POCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  items PurchaseOrderItem[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id          String  @id @default(cuid())
+  description String?
+  quantity    Decimal @default(1) @db.Decimal(12, 3)
+  unitPrice   Decimal @default(0) @map("unit_price") @db.Decimal(12, 2)
+
+  purchaseOrderId String        @map("purchase_order_id")
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  productId String?  @map("product_id")
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("purchase_order_items")
+}
+
+// ==========================================
+// FINANCE
+// ==========================================
+
+model ExpenseCategory {
+  id            String  @id @default(cuid())
+  name          String
+  description   String?
+  monthlyBudget Decimal @default(0) @map("monthly_budget") @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  expenses Expense[]
+
+  @@map("expense_categories")
+}
+
+model SupplierInvoice {
+  id            String    @id @default(cuid())
+  supplierName  String?   @map("supplier_name")
+  invoiceNumber String?   @map("invoice_number")
+  invoiceDate   DateTime? @map("invoice_date")
+  dueDate       DateTime? @map("due_date")
+  subtotal      Decimal   @default(0) @db.Decimal(12, 2)
+  tax           Decimal   @default(0) @db.Decimal(12, 2)
+  total         Decimal   @default(0) @db.Decimal(12, 2)
+  currency      String    @default("USD")
+  status        String    @default("extracted")
+  sourceKind    String    @default("printed") @map("source_kind")
+  filePath      String?   @map("file_path")
+  fileName      String?   @map("file_name")
+  confidence    Decimal?  @db.Decimal(5, 2)
+  rawExtraction Json?     @map("raw_extraction")
+
+  supplierId String?   @map("supplier_id")
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  createdBy String? @map("created_by")
+  creator   User?   @relation("InvoiceCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  items    SupplierInvoiceItem[]
+  expenses Expense[]
+
+  @@map("supplier_invoices")
+}
+
+model SupplierInvoiceItem {
+  id          String  @id @default(cuid())
+  description String  @default("")
+  quantity    Decimal @default(1) @db.Decimal(12, 3)
+  unit        String?
+  unitPrice   Decimal @default(0) @map("unit_price") @db.Decimal(12, 2)
+  lineTotal   Decimal @default(0) @map("line_total") @db.Decimal(12, 2)
+
+  invoiceId String          @map("invoice_id")
+  invoice   SupplierInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([invoiceId])
+  @@map("supplier_invoice_items")
+}
+
+model Expense {
+  id            String   @id @default(cuid())
+  title         String
+  amount        Decimal  @default(0) @db.Decimal(12, 2)
+  expenseDate   DateTime @default(now()) @map("expense_date")
+  paymentMethod String   @default("cash") @map("payment_method")
+  notes         String?
+
+  categoryId String?          @map("category_id")
+  category   ExpenseCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  supplierId String?   @map("supplier_id")
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  invoiceId String?          @map("invoice_id")
+  invoice   SupplierInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  createdBy String? @map("created_by")
+  creator   User?   @relation("ExpenseCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([expenseDate(sort: Desc)])
+  @@map("expenses")
+}
+
+// ==========================================
+// AUDIT & LOGS
+// ==========================================
+
+model ActivityLog {
+  id       String  @id @default(cuid())
+  action   String
+  entity   String
+  entityId String? @map("entity_id")
+  meta     Json?
+
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("activity_logs")
 }
