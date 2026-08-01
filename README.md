@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RestaurantOS
 
-## Getting Started
+**RestaurantOS** is a modern restaurant management system built for an SDE assignment submission. It is designed to help restaurant teams manage authentication, roles, menus, orders, inventory, invoices, and AI-powered insights from a single web application.
 
-First, run the development server:
+The project is built with Next.js, TypeScript, Prisma, and PostgreSQL. It includes role-based access control, protected routes, and AI-assisted workflows for operational decision-making.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Project Description
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+RestaurantOS provides a structured backend and frontend experience for restaurant operations. The application supports staff access control, dashboard analytics, menu and inventory workflows, and invoice handling. It is a practical full-stack project that demonstrates product thinking, clean architecture, and integration of modern tools.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Category | Technology |
+| --- | --- |
+| Framework | Next.js 16 |
+| Language | TypeScript |
+| Database | PostgreSQL |
+| ORM | Prisma |
+| Authentication | Better Auth |
+| Styling | Tailwind CSS |
+| UI | shadcn/ui |
+| Validation | Zod |
+| Charts | Recharts |
+| AI Integration | Groq API |
 
-## Learn More
+## Project Features
 
-To learn more about Next.js, take a look at the following resources:
+- Authentication with secure session handling
+- Role-based access control for different staff members
+- Dashboard for quick business and operational visibility
+- Order tracking for day-to-day restaurant workflows
+- Menu and category management for items and pricing
+- Product and inventory management for stock control
+- Table management for dine-in operations
+- Invoice processing and expense handling
+- AI insights for smarter decision-making
+- Responsive UI built for practical admin use
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Installation Procedure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Prerequisites
 
-## Deploy on Vercel
+- Node.js 20 or later
+- npm
+- PostgreSQL database
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Steps
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Clone the repository.
+
+	```bash
+	git clone <repository-url>
+	cd restro
+	```
+
+2. Install dependencies.
+
+	```bash
+	npm install
+	```
+
+3. Create a `.env.local` file in the project root and add the required environment variables.
+
+	```env
+	DATABASE_URL="your_postgresql_connection_string"
+	BETTER_AUTH_URL="http://localhost:3000"
+	AUTH_SECRET="your_secure_secret"
+	GROQ_API_KEY="your_groq_api_key"
+	```
+
+4. Prepare the database.
+
+	```bash
+	npm run db:generate
+	npm run db:migrate
+	```
+
+	If you only want to sync the schema during development, you can use:
+
+	```bash
+	npm run db:push
+	```
+
+5. Start the development server.
+
+	```bash
+	npm run dev
+	```
+
+6. Open the application in your browser.
+
+	```text
+	http://localhost:3000
+	```
+
+## API Documentation
+
+The full API reference is available in [docs/API.md](docs/API.md).
+
+## Available Scripts
+
+- `npm run dev` - Start the development server
+- `npm run build` - Build the application for production
+- `npm run start` - Start the production server
+- `npm run lint` - Run ESLint
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:push` - Push schema changes to the database
+- `npm run db:migrate` - Run Prisma migrations
+
+## Screenshots
+
+Add your project images here before submission.
+
+### Image 1
+<!-- Add screenshot here -->
+
+### Image 2
+<!-- Add screenshot here -->
+
+### Image 3
+<!-- Add screenshot here -->
+
+### Image 4
+<!-- Add screenshot here -->
+
+### Image 5
+<!-- Add screenshot here -->
+
+## Notes for Submission
+
+- This project is prepared as an SDE role assignment.
+- Keep the screenshots updated with the latest UI before submitting.
+- Add any deployment link or demo credentials here if required by the evaluator.
+
+## License
+
+This project is submitted for academic or assessment purposes.

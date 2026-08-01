@@ -306,10 +306,139 @@ export const productsResource: ResourceConfig = {
   orderBy: { column: "name", ascending: true },
 };
 
+// app/lib/resources.ts
+
+export const recipesResource: ResourceConfig = {
+  table: "recipe",
+  title: "Recipes",
+  singular: "Recipe",
+  description: "Standardised recipes with ingredients and instructions for every dish.",
+  fields: [
+    {
+      name: "name",
+      label: "Recipe Name",
+      type: "text",
+      required: true,
+      inTable: true,
+      inForm: true,
+      placeholder: "e.g., Classic Margherita Pizza",
+    },
+    {
+      name: "menuItemId",
+      label: "Menu Item",
+      type: "reference",
+      refTable: "menuItem",
+      refLabel: "name",
+      inTable: true,
+      inForm: true,
+    },
+    {
+      name: "instructions",
+      label: "Instructions",
+      type: "textarea",
+      inTable: false,
+      inForm: true,
+      placeholder: "Step-by-step cooking instructions...",
+    },
+    {
+      name: "yieldQty",
+      label: "Yield Quantity",
+      type: "number",
+      inTable: true,
+      inForm: true,
+      placeholder: "e.g., 1 (for 1 serving)",
+    },
+    {
+      name: "prepTimeMinutes",
+      label: "Prep Time (min)",
+      type: "number",
+      inTable: true,
+      inForm: true,
+    },
+  ],
+  searchKeys: ["name"],
+  orderBy: { column: "name", ascending: true },
+};
 
 
+// app/lib/resources.ts
 
-
+export const ingredientsResource: ResourceConfig = {
+  table: "ingredient",
+  title: "Ingredients",
+  singular: "Ingredient",
+  description: "Track kitchen ingredients, stock levels, costs, and suppliers.",
+  fields: [
+    {
+      name: "name",
+      label: "Ingredient Name",
+      type: "text",
+      required: true,
+      inTable: true,
+      inForm: true,
+      placeholder: "e.g., All-Purpose Flour",
+    },
+    {
+      name: "unit",
+      label: "Unit",
+      type: "select",
+      options: [
+        { value: "kg", label: "Kilogram (kg)" },
+        { value: "g", label: "Gram (g)" },
+        { value: "l", label: "Liter (L)" },
+        { value: "ml", label: "Milliliter (ml)" },
+        { value: "piece", label: "Piece" },
+        { value: "dozen", label: "Dozen" },
+        { value: "packet", label: "Packet" },
+      ],
+      inTable: true,
+      inForm: true,
+    },
+    {
+      name: "costPerUnit",
+      label: "Cost Per Unit (₹)",
+      type: "currency",
+      inTable: true,
+      inForm: true,
+    },
+    {
+      name: "currentStock",
+      label: "Current Stock",
+      type: "number",
+      inTable: true,
+      inForm: true,
+      step: "0.001",
+    },
+    {
+      name: "reorderLevel",
+      label: "Reorder Level",
+      type: "number",
+      inTable: true,
+      inForm: true,
+      step: "0.001",
+      placeholder: "Alert when stock falls below this",
+    },
+    {
+      name: "supplierId",
+      label: "Preferred Supplier",
+      type: "reference",
+      refTable: "supplier",
+      refLabel: "name",
+      inTable: true,
+      inForm: true,
+    },
+    {
+      name: "wasteQty",
+      label: "Waste Quantity",
+      type: "number",
+      inTable: true,
+      inForm: true,
+      step: "0.001",
+    },
+  ],
+  searchKeys: ["name"],
+  orderBy: { column: "name", ascending: true },
+};
 
 
 

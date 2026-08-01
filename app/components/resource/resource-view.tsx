@@ -238,7 +238,7 @@ export function ResourceView({ config }: { config: ResourceConfig }) {
     <AppShell title={config.title} description={config.description}
       actions={writable ? <Button onClick={openCreate}><Plus className="size-4" /> New {config.singular}</Button> : undefined}
     >
-      <div className="surface-card overflow-hidden">
+      <div className="surface-card overflow-hidden ">
         <div className="flex items-center gap-3 border-b p-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />

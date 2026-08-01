@@ -57,17 +57,17 @@ export function AppShell({
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 ">
       {/* Desktop Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-gray-200 bg-white lg:flex">
         {brand}
         <div className="min-h-0 flex-1">
           <Sidebar onNavigate={() => {}} />
         </div>
-        <div className="border-t border-gray-200 p-3">
+        <div className="border-t border-gray-200 p-3 bg-[#281e19]">
           {user && (
             <>
-              <div className="mb-2 px-2">
+              <div className="mb-2 px-2 ">
                 <p className="truncate text-sm font-medium">{user.name}</p>
                 <p className="truncate text-xs text-gray-500">{user.email}</p>
               </div>

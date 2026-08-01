@@ -177,3 +177,17 @@
 @utility gradient-warm {
   background-image: var(--gradient-warm);
 }
+
+
+@theme {
+  /* Register the utility as a custom background image alias */
+  --background-image-gradient-warm: linear-gradient(
+    135deg, 
+    oklch(55.6% 0.166 41), 
+    oklch(66% 0.145 62)
+  );
+}
+
+@theme {
+  --font-sans: var(--font-sans), serif;
+}

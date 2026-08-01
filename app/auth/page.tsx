@@ -56,7 +56,7 @@ export default function AuthPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Visual Accent Sidebar */}
-      <div className="relative hidden flex-col justify-between bg-zinc-900 p-12 lg:flex text-white">
+      <div className="relative hidden flex-col justify-between bg-gradient-warm p-12 lg:flex text-white">
         <div className="flex items-center gap-3">
           <UtensilsCrossed className="size-7 text-amber-500" />
           <span className="text-xl font-semibold tracking-tight">RestaurantOS</span>
@@ -65,12 +65,12 @@ export default function AuthPage() {
           <h2 className="text-4xl font-semibold leading-tight">
             One console for the floor, the kitchen and the books.
           </h2>
-          <p className="mt-4 text-zinc-400">
+          <p className="mt-4 text-white">
             Orders, tables, recipes, stock, purchasing and expenses — with AI shortage forecasts and
             invoice extraction built in.
           </p>
         </div>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-white">
           Role-based access for owners, managers, chefs, waiters, cashiers and store managers.
         </p>
       </div>
@@ -89,7 +89,7 @@ export default function AuthPage() {
               variant="outline"
               className="w-full"
               onClick={handleGoogleSignIn}
-              disabled={loading}
+              disabled={true}
               type="button"
             >
               Continue with Google
