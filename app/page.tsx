@@ -30,7 +30,7 @@ export default function Landing() {
           </div>
           <span className="font-display text-lg font-semibold">RestaurantOS</span>
         </div>
-        <Button asChild>
+        <Button asChild className="rounded-[1.5rem] px-6 py-4">
           <Link href="/auth">Sign in</Link>
         </Button>
       </header>
@@ -47,16 +47,16 @@ export default function Landing() {
           invoices — with AI that reads your paperwork and warns you before you run out.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Button asChild size="lg">
+          <Button asChild size="lg" className="rounded-[1.5rem] px-10 py-5">
             <Link href="/auth">Get started</Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
+          <Button asChild size="lg" variant="outline" className="rounded-[1.5rem] px-10 py-5">
             <Link href="/auth">Sign in to console</Link>
           </Button>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-4 px-6 pb-24 md:grid-cols-3">
+      <section className="mx-auto grid max-w-6xl gap-4 px-6 pb-5 md:grid-cols-3">
         {FEATURES.map((f) => (
           <div key={f.title} className="surface-card p-6">
             <f.icon className="size-5 text-primary" />

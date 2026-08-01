@@ -9,6 +9,8 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { toast } from "sonner";
+
 
 export default function AuthPage() {
   const router = useRouter();
@@ -37,6 +39,7 @@ export default function AuthPage() {
       callbackURL: "/dashboard",
     });
     setLoading(false);
+    toast.success("Signed in successfully!");
     if (!error) router.push("/dashboard");
   };
 
@@ -50,6 +53,7 @@ export default function AuthPage() {
       callbackURL: "/dashboard",
     });
     setLoading(false);
+    toast.success("Account created successfully!");
     if (!error) setPending(true);
   };
 

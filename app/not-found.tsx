@@ -28,9 +28,9 @@ export default function NotFound() {
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/">
+              <Link href="/dashboard">
                 <House className="mr-2 size-4" />
-                Go to Home
+                Go to Dashboard
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">

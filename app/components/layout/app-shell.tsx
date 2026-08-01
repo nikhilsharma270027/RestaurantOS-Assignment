@@ -44,7 +44,7 @@ export function AppShell({
 
   const brand = (
     <div className="flex items-center gap-2.5 px-5 py-5">
-      <div className="grid size-9 place-items-center rounded-lg bg-gradient-to-br from-orange-500 to-red-500">
+      <div className="grid size-9 place-items-center rounded-lg bg-linear-to-br from-orange-500 to-red-500">
         <UtensilsCrossed className="size-5 text-white" />
       </div>
       <div className="leading-tight">
@@ -64,7 +64,7 @@ export function AppShell({
         <div className="min-h-0 flex-1">
           <Sidebar onNavigate={() => {}} />
         </div>
-        <div className="border-t border-gray-200 p-3 bg-[#281e19]">
+        <div className="border-t border-gray-200 p-3">
           {user && (
             <>
               <div className="mb-2 px-2 ">

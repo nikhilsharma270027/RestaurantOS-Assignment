@@ -39,9 +39,9 @@ export default function RootLayout({
       className={cn(
         "h-full", 
         "antialiased", 
-        // geistSans.variable, 
-        // geistMono.variable, 
-        // jetbrainsMono.variable,
+        geistSans.variable, 
+        geistMono.variable, 
+        jetbrainsMono.variable,
         fraunces.variable, // Added Fraunces variable hook here
         "font-sans" // Keeps your standard text cleanly defaulted to sans-serif
       )}
