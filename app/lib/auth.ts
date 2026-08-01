@@ -13,12 +13,18 @@ function requireEnv(name: string) {
 }
 
 export const auth = betterAuth({
-  baseURL: requireEnv("BETTER_AUTH_URL"),
+  // ✅ Use VERCEL_URL as fallback for production
+  baseURL: process.env.BETTER_AUTH_URL || 
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
+  
   secret: requireEnv("AUTH_SECRET"),
+  
   trustedOrigins: [
-    process.env.BETTER_AUTH_URL!,
-    "https://*.vercel.app"
-  ],
+    process.env.BETTER_AUTH_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+    "http://localhost:3000",
+    "https://*.vercel.app",
+  ].filter(Boolean) as string[], // ✅ Filter out null values
 
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -30,9 +36,9 @@ export const auth = betterAuth({
     autoSignIn: true,
   },
 
-  // Email verification (optional)
+  // Email verification
   emailVerification: {
-    sendOnSignUp: false, // Set to true if you want email verification
+    sendOnSignUp: false,
   },
 
   // Map your custom schema fields
@@ -49,47 +55,47 @@ export const auth = betterAuth({
     },
   },
 
-  // app/lib/auth.ts
-plugins: [
-  lastLoginMethod(),
-  customSession(async ({ user, session }) => {
-    try {
-      const dbUser = await prisma.user.findUnique({
-        where: { id: session.userId },
-        select: {
-          name: true,
-          role: true,
-          isActive: true,
-          employeeId: true,
-          phone: true,
-        },
-      });
+  // Plugins
+  plugins: [
+    lastLoginMethod(),
+    customSession(async ({ user, session }) => {
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: session.userId },
+          select: {
+            name: true,
+            role: true,
+            isActive: true,
+            employeeId: true,
+            phone: true,
+          },
+        });
 
-      return {
-        user: {
-          ...user,
-          role: dbUser?.role || "WAITER", // ✅ Make sure role is included
-          isActive: dbUser?.isActive ?? true,
-          employeeId: dbUser?.employeeId || null,
-          phone: dbUser?.phone || null,
-        },
-        session,
-      };
-    } catch (error) {
-      console.error("Error in customSession:", error);
-      return {
-        user: {
-          ...user,
-          role: "WAITER",
-          isActive: true,
-          employeeId: null,
-          phone: null,
-        },
-        session,
-      };
-    }
-  }),
-],
+        return {
+          user: {
+            ...user,
+            role: dbUser?.role || "WAITER",
+            isActive: dbUser?.isActive ?? true,
+            employeeId: dbUser?.employeeId || null,
+            phone: dbUser?.phone || null,
+          },
+          session,
+        };
+      } catch (error) {
+        console.error("Error in customSession:", error);
+        return {
+          user: {
+            ...user,
+            role: "WAITER",
+            isActive: true,
+            employeeId: null,
+            phone: null,
+          },
+          session,
+        };
+      }
+    }),
+  ],
 
   // Hooks
   hooks: {
@@ -104,17 +110,17 @@ plugins: [
 
         if (!password) return;
 
+        // ✅ Fixed: using result.error.issues instead of error.errors
         const result = passwordSchema.safeParse(password);
 
         if (!result.success) {
           throw new APIError("BAD_REQUEST", {
-            // FIX: Change 'error.errors' to 'result.error.issues'
             message: result.error.issues[0]?.message || "Password not strong enough",
           });
         }
       }
 
-      // Optional: Make first user an OWNER
+      // Make first user an OWNER
       if (ctx.path === "/sign-up/email") {
         try {
           const userCount = await prisma.user.count();
