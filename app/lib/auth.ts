@@ -12,36 +12,34 @@ function requireEnv(name: string) {
   return value;
 }
 
+// ✅ Get the correct base URL
+const baseURL = process.env.BETTER_AUTH_URL || 
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
+  "http://localhost:3000";
+
 export const auth = betterAuth({
-  // ✅ Use VERCEL_URL as fallback for production
-  baseURL: process.env.BETTER_AUTH_URL || 
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
-  
+  baseURL,
   secret: requireEnv("AUTH_SECRET"),
   
   trustedOrigins: [
-    process.env.BETTER_AUTH_URL,
-    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+    baseURL,
     "http://localhost:3000",
     "https://*.vercel.app",
-  ].filter(Boolean) as string[], // ✅ Filter out null values
+  ],
 
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
 
-  // Authentication methods
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
   },
 
-  // Email verification
   emailVerification: {
     sendOnSignUp: false,
   },
 
-  // Map your custom schema fields
   user: {
     additionalFields: {
       role: {
@@ -55,7 +53,6 @@ export const auth = betterAuth({
     },
   },
 
-  // Plugins
   plugins: [
     lastLoginMethod(),
     customSession(async ({ user, session }) => {
@@ -97,22 +94,17 @@ export const auth = betterAuth({
     }),
   ],
 
-  // Hooks
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
-      // Password validation
       if (
         ctx.path === "/sign-up/email" ||
         ctx.path === "/reset-password" ||
         ctx.path === "/change-password"
       ) {
         const password = ctx.body?.password ?? ctx.body?.newPassword;
-
         if (!password) return;
 
-        // ✅ Fixed: using result.error.issues instead of error.errors
         const result = passwordSchema.safeParse(password);
-
         if (!result.success) {
           throw new APIError("BAD_REQUEST", {
             message: result.error.issues[0]?.message || "Password not strong enough",
@@ -120,7 +112,6 @@ export const auth = betterAuth({
         }
       }
 
-      // Make first user an OWNER
       if (ctx.path === "/sign-up/email") {
         try {
           const userCount = await prisma.user.count();
@@ -135,13 +126,12 @@ export const auth = betterAuth({
     }),
   },
 
-  // Session configuration
   session: {
-    expiresIn: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // 24 hours
+    expiresIn: 30 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60,
     cookieCache: {
       enabled: true,
-      maxAge: 5 * 60, // 5 minutes
+      maxAge: 5 * 60,
     },
   },
 });
